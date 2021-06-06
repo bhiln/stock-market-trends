@@ -5,47 +5,61 @@ import pandas_datareader as pdr
 
 highGrowthStockDf = pd.read_csv('highGrowthStockExample.csv')
 
+twoYearGainList =[]
+
 print(highGrowthStockDf['TickerSymbol'])
 
-stock_name = highGrowthStockDf.loc[0,'TickerSymbol']
-# print(stock_name)
+for i in range(len(highGrowthStockDf.index)):
 
-# Download data from Yahoo Finance API
-stock = pdr.get_data_yahoo(stock_name,'2019-05-31')
+  stock_name = highGrowthStockDf.loc[i,'TickerSymbol']
+  # print(stock_name)
 
-# Dropping Unused Columns
-stock.drop('Adj Close', axis=1, inplace=True)
-stock.drop('High', axis=1, inplace=True)
-stock.drop('Low', axis=1, inplace=True)
-stock.drop('Open', axis=1, inplace=True)
-stock.drop('Volume', axis=1, inplace=True)
-print(stock.head())
+  # Download data from Yahoo Finance API
+  stock = pdr.get_data_yahoo(stock_name,'2019-05-31')
 
-# Get the Moving Averages for 3-day, 9-day and 21-day
-stock['3-day'] = stock['Close'].rolling(3).mean()
-stock['9-day'] = stock['Close'].rolling(9).mean()
-stock['21-day'] = stock['Close'].rolling(21).mean()
+  # Dropping Unused Columns
+  stock.drop('Adj Close', axis=1, inplace=True)
+  stock.drop('High', axis=1, inplace=True)
+  stock.drop('Low', axis=1, inplace=True)
+  stock.drop('Open', axis=1, inplace=True)
+  stock.drop('Volume', axis=1, inplace=True)
+  print(stock.head())
 
-# Get the daily changes
-stock['Change'] = np.log(stock.Close / stock.Close.shift())
+  # Get the Moving Averages for 3-day, 9-day and 21-day
+  stock['3-day'] = stock['Close'].rolling(3).mean()
+  stock['9-day'] = stock['Close'].rolling(9).mean()
+  stock['21-day'] = stock['Close'].rolling(21).mean()
 
-# 3-day vs 9-day MA.
-# Register 1 when 3-day MA is greater than 9-day MA and -1 when 3-day is less than 9-day
-stock['Position_3v9'] = np.where(stock['3-day'] > stock['9-day'], 1, 0)
-stock['Position_3v9'] = np.where(stock['3-day'] < stock['9-day'], -1, stock['Position_3v9'])
+  # Get the daily changes
+  stock['Change'] = np.log(stock.Close / stock.Close.shift())
 
-# 9-day vs 21-day MA.
-# Register 1 when 9-day MA is greater than 21-day MA and -1 when 9-day is less than 21-day
-stock['Position_9v21'] = np.where(stock['9-day'] > stock['21-day'], 1,0)
-stock['Position_9v21'] = np.where(stock['9-day'] < stock['21-day'],-1,stock['Position_9v21'])
+  # 3-day vs 9-day MA.
+  # Register 1 when 3-day MA is greater than 9-day MA and -1 when 3-day is less than 9-day
+  stock['Position_3v9'] = np.where(stock['3-day'] > stock['9-day'], 1, 0)
+  stock['Position_3v9'] = np.where(stock['3-day'] < stock['9-day'], -1, stock['Position_3v9'])
 
-# Calculate the volatility of the stock
-stock['Volatility_3d'] = stock.Change.rolling(3).std().shift()
+  # 9-day vs 21-day MA.
+  # Register 1 when 9-day MA is greater than 21-day MA and -1 when 9-day is less than 21-day
+  stock['Position_9v21'] = np.where(stock['9-day'] > stock['21-day'], 1,0)
+  stock['Position_9v21'] = np.where(stock['9-day'] < stock['21-day'],-1,stock['Position_9v21'])
 
-stock['System_3v9'] = np.where(stock['Position_3v9'] > 0, stock['Position_3v9'] * stock['Change'], 0)
-# stock[['Change', 'System_3v9']].cumsum().plot()
+  # Calculate the volatility of the stock
+  stock['Volatility_3d'] = stock.Change.rolling(3).std().shift()
 
-# print(stock['Position_3v9'].tail(30))
-print(stock['System_3v9'].cumsum())
+  stock['System_3v9'] = np.where(stock['Position_3v9'] > 0, stock['Position_3v9'] * stock['Change'], 0)
+  print(stock['System_3v9'].cumsum().tail(1)[0])
+  gain = stock['System_3v9'].cumsum().tail(1)[0]
+  change = stock['Change'].cumsum().tail(1)[0]
+  
 
-# print(stock[['Change', 'System_3v9']].cumsum().tail(30))
+  twoYearGainList.append({ 'StockName': stock_name, "Gain": gain, "Change": change })
+
+
+print("two year gain list is: ")
+print(twoYearGainList)
+
+twoYearGainDf = pd.DataFrame(twoYearGainList)
+print(twoYearGainDf)
+
+meanDifference = (twoYearGainDf['Gain'] - twoYearGainDf['Change']).mean()
+print(meanDifference)
