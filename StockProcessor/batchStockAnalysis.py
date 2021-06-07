@@ -4,14 +4,17 @@ import matplotlib.pyplot as plt
 import pandas_datareader as pdr
 
 highGrowthStockDf = pd.read_csv('highGrowthStockExample.csv')
+recommendedStockDf = pd.read_csv('recommendedStock.csv')
+
+targetDf = recommendedStockDf
 
 twoYearGainList =[]
 
-print(highGrowthStockDf['TickerSymbol'])
+print(targetDf['TickerSymbol'])
 
-for i in range(len(highGrowthStockDf.index)):
+for i in range(len(targetDf.index)):
 
-  stock_name = highGrowthStockDf.loc[i,'TickerSymbol']
+  stock_name = targetDf.loc[i,'TickerSymbol']
   # print(stock_name)
 
   # Download data from Yahoo Finance API
