@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+pandas_datareader
+sklearn
+bitmap
+jupyter_contrib_nbextensions
+ipynb
